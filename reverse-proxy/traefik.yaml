@@ -1,0 +1,31 @@
+log:
+  level: INFO
+  # level: DEBUG
+
+# accesslog:
+#   addInternals: true
+
+entryPoints:
+  web:
+    address: :80
+    http:
+      redirections:
+        entryPoint:
+          to: web-secure
+          scheme: https
+  web-secure:
+    address: :443
+  # Entry point for container image registry for model generators (via port mapping)
+  web-repo-generator-images:
+    address: :8082
+  # Entry point for container image registry for models (via port mapping)
+  web-repo-model-images:
+    address: :8083
+  # web-repo-model-artifacts:
+  #   address: :8084
+
+providers:
+  docker:
+    watch: true
+  file:
+    directory: /etc/certs

@@ -1,0 +1,7 @@
+# config files
+**auth-config.json
+**.env
+certs
+
+# dev artifacts
+test

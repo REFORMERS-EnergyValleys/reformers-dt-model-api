@@ -1,0 +1,99 @@
+services:
+
+  repository:
+    image: sonatype/nexus3:3.70.3
+    volumes:
+      - nexus_repo_data:/nexus-data
+    labels:
+      - "traefik.enable=true"
+      # Nexus repository frontend
+      - "traefik.http.routers.nexus.rule=Host(`${HOSTNAME}`)"
+      - "traefik.http.routers.nexus.service=service-nexus"
+      - "traefik.http.services.service-nexus.loadbalancer.server.port=8081"
+      - "traefik.http.routers.nexus.entrypoints=web,web-secure"
+      - "traefik.http.routers.nexus.tls=true"
+      # Container image registry for model generators (via port mapping)
+      - "traefik.http.routers.repo-generator-images.rule=Host(`${HOSTNAME}`)"
+      - "traefik.http.routers.repo-generator-images.service=service-repo-generator-images"
+      - "traefik.http.services.service-repo-generator-images.loadbalancer.server.port=8082"
+      - "traefik.http.routers.repo-generator-images.entrypoints=web-repo-generator-images"
+      - "traefik.http.routers.repo-generator-images.tls=true"
+      # # Container image registry for model generators (via host mapping)
+      # - "traefik.http.routers.repo-generator-images.rule=Host(`generators.${HOSTNAME}`)"
+      # - "traefik.http.routers.registry.service=service-repo-generator-images"
+      # - "traefik.http.services.service-repo-generator-images.loadbalancer.server.port=8082"
+      # - "traefik.http.routers.repo-generator-images.tls=true"
+      # Container image registry for models (via port mapping)
+      - "traefik.http.routers.repo-model-images.rule=Host(`${HOSTNAME}`)"
+      - "traefik.http.routers.repo-model-images.service=service-repo-model-images"
+      - "traefik.http.services.service-repo-model-images.loadbalancer.server.port=8083"
+      - "traefik.http.routers.repo-model-images.entrypoints=web-repo-model-images"
+      - "traefik.http.routers.repo-model-images.tls=true"
+      # # Artifact repository for models
+      # - "traefik.http.routers.repo-model-artifacts.rule=Host(`${HOSTNAME}`)"
+      # - "traefik.http.routers.repo-model-artifacts.service=service-repo-model-artifacts"
+      # - "traefik.http.services.service-repo-model-artifacts.loadbalancer.server.port=8084"
+      # - "traefik.http.routers.repo-model-artifacts.entrypoints=web-repo-model-artifacts"
+      # - "traefik.http.routers.repo-model-artifacts.tls=true"
+    restart: on-failure
+    healthcheck:
+      test: [
+        "CMD", "curl", "--fail", "--silent", "http://localhost:8081/service/rest/v1/status/writable"
+      ]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+      start_period: 180s
+
+  setup-repository:
+    build: nexus3-repo
+    volumes:
+      - nexus_repo_data:/nexus-data
+    environment:
+      - NEXUS_URL=https://${HOSTNAME}
+      - NEXUS_PASSWORD=${REPO_ADMIN_PASSWORD}
+    deploy:
+      restart_policy:
+        condition: on-failure
+        delay: 5s
+        max_attempts: 3
+    depends_on:
+      repository:
+        restart: true
+        condition: service_healthy
+
+  model-api:
+    image: reformers-energyvalleys/model-api-server
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock"
+      - "${AUTH_CONFIG_FULL_PATH}:/auth-config.json"
+    environment:
+      - "REGISTRY_AUTH_CONFIG=${AUTH_CONFIG_FULL_PATH}"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.model-api.rule=Host(`${HOSTNAME}`) && PathPrefix(`/api`)"
+      - "traefik.http.routers.model-api.entrypoints=web,web-secure"
+      - "traefik.http.routers.model-api.tls=true"
+      - "traefik.http.routers.model-api.service=service-model-api"
+      - "traefik.http.services.service-model-api.loadbalancer.server.port=80"
+    restart: on-failure
+    depends_on:
+      setup-repository:
+        condition: service_completed_successfully
+
+  reverse-proxy:
+    image: traefik:v3.5.0
+    ports:
+      - "80:80"
+      - "443:443"
+      - "8082:8082"
+      - "8083:8083"
+      # - "8084:8084"
+    volumes:
+      - ./reverse-proxy/traefik.yaml:/etc/traefik/traefik.yaml
+      - ./certs:/etc/certs
+      - /var/run/docker.sock:/var/run/docker.sock
+    restart: on-failure
+
+volumes:
+  nexus_repo_data:

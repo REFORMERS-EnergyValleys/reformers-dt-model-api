@@ -8,12 +8,13 @@ The Model API enables users / services to retrieve information about available m
 
 ## Installation
 
-1. Provide **server private key** (`server.key`) and **certificate** (`server.crt`) in sub-directory `certs`.
+1. Provide **server private key** (`server.key`) and **certificate** (`server.crt`) in sub-directory `<CERTS_DIR>` (e.g., `./certs`).
    For testing, you may use the following to generate private key and certificate, then check the details:
    ``` bash
-   openssl genrsa -out certs/server.key 2048
-   openssl req -new -x509 -sha256 -key certs/server.key -out certs/server.crt -config certs/certs.cfg -days 3650
-   openssl x509 -in certs/server.crt -text -noout
+   cd <CERTS_DIR>
+   openssl genrsa -out server.key 2048
+   openssl req -new -x509 -sha256 -key server.key -out server.crt -config certs.cfg -days 3650
+   openssl x509 -in server.crt -text -noout
    ```
 2. Provide **authorization config file**:
    + Get your access credentials encoded in base64:
@@ -39,6 +40,7 @@ The Model API enables users / services to retrieve information about available m
    For testing, you can use file [`auth-config.json.example`](./auth-config.json.example).
 3. Define the following **environment variables**:
    + `HOSTNAME`: host name of the server (example: *reformers-dev.ait.ac.at*)
+   + `CERTS_DIR`: sub-directory with certificates (example: *./certs*)
    + `REPO_ADMIN_PASSWORD`: password for administrator account
    + `USER_NAME`: user name for default user account
    + `USER_PASSWORD`: password for default user account

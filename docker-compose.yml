@@ -96,7 +96,8 @@ services:
       # - "8084:8084"
     volumes:
       - ./reverse-proxy/traefik.yaml:/etc/traefik/traefik.yaml
-      - ./certs:/etc/certs
+      - ./reverse-proxy/certificates.yaml:/etc/certs/certificates.yaml
+      - ${CERTS_DIR}:/etc/certs
       - /var/run/docker.sock:/var/run/docker.sock
     restart: on-failure
 

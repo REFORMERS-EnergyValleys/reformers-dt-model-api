@@ -1,0 +1,22 @@
+stages:
+  - stage
+
+# ============================================================================
+# Define the job templates as referenced by their actual implementation
+# ============================================================================
+.deploy-model-api:
+  script:
+    - docker info
+    - docker compose pull
+    - docker compose build --pull
+    - docker compose up --force-recreate --always-recreate-deps -d
+
+# ============================================================================
+# Staging Jobs
+# ============================================================================
+
+deploy-staging:
+  extends: .deploy-model-api
+  stage: stage
+  tags:
+    - reformers-dev

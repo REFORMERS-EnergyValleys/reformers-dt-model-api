@@ -1,7 +1,10 @@
 # REFORMERS Digital Twin Model API & Container Regsitry
 
-The REFORMERS Digital Twin Container Registry stores container images of model generators and models.
-The REFORMERS Digital Twin Model API enables users / services to retrieve information about available model generators and models.
+This repository provides the configuration for deploying the **Model API** & **Container Regsitry** for the [REFORMERS] Digital Twin.
+The Container Registry stores container images of model generators and models.
+The Model API enables users / services to retrieve information about available model generators and models and helps automating associated workflows.
+
+![Overview of the components of the REFORMERS Digital Twin Model API & Container Regsitry](img/model-api-and-registry-overview.svg "REFORMERS Digital Twin Model API & Container Regsitry")
 
 ## Installation
 
@@ -15,7 +18,7 @@ The REFORMERS Digital Twin Model API enables users / services to retrieve inform
 2. Provide **authorization config file**:
    + Get your access credentials encoded in base64:
      ```
-     echo -n admin:<REPO_ADMIN_PASSWORD> | base64
+     echo -n <USER_NAME>:<USER_PASSWORD> | base64
      ```
    + Create a JSON file with the following content, using the previously generated base64-encoded credentials:
      ```
@@ -36,11 +39,17 @@ The REFORMERS Digital Twin Model API enables users / services to retrieve inform
    For testing, you can use file [`auth-config.json.example`](./auth-config.json.example).
 3. Define the following **environment variables**:
    + `HOSTNAME`: host name of the server (example: *reformers-dev.ait.ac.at*)
-   + `REPO_ADMIN_PASSWORD`: administrator password
+   + `REPO_ADMIN_PASSWORD`: password for administrator account
+   + `USER_NAME`: user name for default user account
+   + `USER_PASSWORD`: password for default user account
+   + `USER_FIRST_NAME`: first name for default user account
+   + `USER_LAST_NAME`: last name for default user account
+   + `USER_EMAIL`: e-mail address name for default user account
    + `AUTH_CONFIG_FULL_PATH`: full path to authorization config file
    For testing, you can use file [`.env.example`](./.env.example).
 4. Start the service:
    ``` bash
+   docker compose build
    docker compose up -d
    ```
 
@@ -108,6 +117,8 @@ _Solution_: Add the following to the Docker daemon configuration file (change `H
 ]
 ```
 
-## Known Issues
+## Funding acknowledgement
 
-+ All access to the Sonatype Nexus3 repository (including the container image registries) is handled via the administrator account (user name `admin`).
+<img alt="European Flag" src="https://upload.wikimedia.org/wikipedia/commons/thumb/b/b7/Flag_of_Europe.svg/330px-Flag_of_Europe.svg.png" align="left" style="margin-right: 10px" height="57"/> This development has been supported by the [REFORMERS] project of the European Union’s research and innovation programme Horizon Europe under the grant agreement No.101136211.
+
+[REFORMERS]: https://reformers-energyvalleys.eu/

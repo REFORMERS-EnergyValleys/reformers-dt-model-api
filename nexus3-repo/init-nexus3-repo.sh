@@ -3,7 +3,13 @@
 NEXUS_URL="${NEXUS_URL:-https://reformers-dev.ait.ac.at}"
 NEXUS_PASSWORD="${NEXUS_PASSWORD:?new admin password for repository is required}"
 
-# Retrieve initial password
+USER_NAME="${USER_NAME:?user name is required}"
+USER_PASSWORD="${USER_PASSWORD:?user password is required}"
+USER_FIRST_NAME="${USER_FIRST_NAME:?user first name is required}"
+USER_LAST_NAME="${USER_LAST_NAME:?user last name is required}"
+USER_EMAIL="${USER_EMAIL:?user email is required}"
+
+# Retrieve initial admin password
 INITIAL_PASSWORD_FILE=/nexus-data/admin.password
 if [[ ! -e "${INITIAL_PASSWORD_FILE}" ]]; then
   echo '[INFO] password file not found'
@@ -11,7 +17,7 @@ if [[ ! -e "${INITIAL_PASSWORD_FILE}" ]]; then
 fi
 INITIAL_PASSWORD=$(cat ${INITIAL_PASSWORD_FILE})
 
-# Set new password
+# Set new admin password
 HTTP_RESPONSE=$( \
   curl -k -s -w "%{http_code}" -u admin:${INITIAL_PASSWORD} -X PUT "${NEXUS_URL}/service/rest/v1/security/users/admin/change-password" \
   -H 'Content-Type: text/plain' \
@@ -23,6 +29,50 @@ if [[ ${HTTP_RESPONSE} != "204" ]]; then
     exit 1
 else
     echo '[INFO] set new password'
+fi
+
+# Create role for non-admin users to read repository settings
+HTTP_RESPONSE=$( \
+  curl -k -s -w "%{http_code}" -o "security-roles.json" -u admin:${NEXUS_PASSWORD} \
+  -X 'POST' 'https://reformers-dev.ait.ac.at/service/rest/v1/security/roles' \
+  -H 'accept: application/json' \
+  -H 'Content-Type: application/json' \
+  -d '{
+    "id": "repository-access",
+    "name": "repository-access",
+    "privileges": [ "nx-repository-admin-*-*-read", "nx-repository-view-*-*-*" ]
+  }' \
+)
+
+if [[ ${HTTP_RESPONSE} != "200" ]]; then
+    echo '[ERROR] failed to create new role: repository-access' >&2
+    exit 1
+else
+    echo '[INFO] created new role: repository-access'
+fi
+
+# Add new user
+HTTP_RESPONSE=$( \
+  curl -k -s -w "%{http_code}" -o "security-users.json" -u admin:${NEXUS_PASSWORD} \
+  -X 'POST' 'https://reformers-dev.ait.ac.at/service/rest/v1/security/users' \
+  -H 'accept: application/json' \
+  -H 'Content-Type: application/json' \
+  -d "{ \
+    \"userId\": \"${USER_NAME}\", \
+    \"firstName\": \"${USER_FIRST_NAME}\", \
+    \"lastName\": \"${USER_LAST_NAME}\", \
+    \"emailAddress\": \"${USER_EMAIL}\", \
+    \"password\": \"${USER_PASSWORD}\", \
+    \"status\": \"active\", \
+    \"roles\": [ \"nx-anonymous\", \"repository-access\" ] \
+  }" \
+)
+
+if [[ ${HTTP_RESPONSE} != "200" ]]; then
+    echo "[ERROR] failed to create new user: ${USER_NAME}" >&2
+    exit 1
+else
+    echo "[INFO] created new user: ${USER_NAME}"
 fi
 
 # Enable anonymous access
@@ -111,7 +161,7 @@ fi
 
 # Add Docker registry for models
 HTTP_RESPONSE=$( \
-curl -k -s -w "%{http_code}" -u admin:${NEXUS_PASSWORD} \
+  curl -k -s -w "%{http_code}" -u admin:${NEXUS_PASSWORD} \
   -X POST "${NEXUS_URL}/service/rest/v1/repositories/docker/hosted" \
   -H 'Content-Type: application/json' \
   -d '{

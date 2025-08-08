@@ -1,6 +1,6 @@
 #!/bin/bash
 
-NEXUS_URL="${NEXUS_URL:-https://reformers-dev.ait.ac.at}"
+NEXUS_URL="${NEXUS_URL:-${NEXUS_URL}}"
 echo "[INFO] repository URL: ${NEXUS_URL}"
 
 NEXUS_PASSWORD="${NEXUS_PASSWORD:?new admin password for repository is required}"
@@ -36,7 +36,7 @@ fi
 # Create role for non-admin users to read repository settings
 HTTP_RESPONSE=$( \
   curl -k -s -w "%{http_code}" -o "security-roles.json" -u admin:${NEXUS_PASSWORD} \
-  -X 'POST' 'https://reformers-dev.ait.ac.at/service/rest/v1/security/roles' \
+  -X 'POST' "${NEXUS_URL}/service/rest/v1/security/roles" \
   -H 'accept: application/json' \
   -H 'Content-Type: application/json' \
   -d '{
@@ -56,7 +56,7 @@ fi
 # Add new user
 HTTP_RESPONSE=$( \
   curl -k -s -w "%{http_code}" -o "security-users.json" -u admin:${NEXUS_PASSWORD} \
-  -X 'POST' 'https://reformers-dev.ait.ac.at/service/rest/v1/security/users' \
+  -X 'POST' "${NEXUS_URL}/service/rest/v1/security/users" \
   -H 'accept: application/json' \
   -H 'Content-Type: application/json' \
   -d "{ \

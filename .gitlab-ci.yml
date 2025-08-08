@@ -7,7 +7,7 @@ stages:
 .deploy-model-api:
   script:
     - docker info
-    - echo $REPO_TOKEN | docker login ghcr.io -u $REPO_USER --password-stdin
+    - echo ${REPO_TOKEN} | docker login ghcr.io -u ${REPO_USER} --password-stdin
     - docker compose pull
     - docker compose build --pull
     - docker compose up --force-recreate --always-recreate-deps -d

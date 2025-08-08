@@ -8,13 +8,12 @@ The Model API enables users / services to retrieve information about available m
 
 ## Installation
 
-1. Provide **server private key** (`server.key`) and **certificate** (`server.crt`) in sub-directory `<CERTS_DIR>` (e.g., `./certs`).
-   For testing, you may use the following to generate private key and certificate, then check the details:
+1. Provide **server private key** (`server.key`) and **certificate** (`server.crt`) in sub-directory `./certs`.
+   For testing, you may use the following to generate private key and certificate:
    ``` bash
-   cd <CERTS_DIR>
+   mkdir certs && cd certs
    openssl genrsa -out server.key 2048
-   openssl req -new -x509 -sha256 -key server.key -out server.crt -config certs.cfg -days 3650
-   openssl x509 -in server.crt -text -noout
+   openssl req -new -x509 -sha256 -key server.key -out server.crt -days 3650
    ```
 2. Provide **authorization config file**:
    + Get your access credentials encoded in base64:
@@ -38,9 +37,10 @@ The Model API enables users / services to retrieve information about available m
      }
      ```
    For testing, you can use file [`auth-config.json.example`](./auth-config.json.example).
-3. Define the following **environment variables**:
+3. Define the following **environment variables** (e.g., via file `.env`):
    + `HOSTNAME`: host name of the server (example: *reformers-dev.ait.ac.at*)
-   + `CERTS_DIR`: sub-directory with certificates (example: *./certs*)
+   + `KEY_FILE`: server private key file (example: */certs/server.key*)
+   + `CERT_FILE`: server certificate file (example: */certs/server.crt*)
    + `REPO_ADMIN_PASSWORD`: password for administrator account
    + `USER_NAME`: user name for default user account
    + `USER_PASSWORD`: password for default user account
@@ -51,6 +51,7 @@ The Model API enables users / services to retrieve information about available m
    For testing, you can use file [`.env.example`](./.env.example).
 4. Start the service:
    ``` bash
+   docker compose pull
    docker compose build
    docker compose up -d
    ```

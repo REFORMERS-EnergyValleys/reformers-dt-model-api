@@ -97,7 +97,8 @@ services:
     volumes:
       - ./reverse-proxy/traefik.yaml:/etc/traefik/traefik.yaml
       - ./reverse-proxy/certificates.yaml:/etc/certs/certificates.yaml
-      - ${CERTS_DIR}:/etc/certs
+      - ${KEY_FILE}:/etc/certs/server.key
+      - ${CERT_FILE}:/etc/certs/server.crt
       - /var/run/docker.sock:/var/run/docker.sock
     restart: on-failure
 

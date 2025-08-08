@@ -1,6 +1,8 @@
 #!/bin/bash
 
 NEXUS_URL="${NEXUS_URL:-https://reformers-dev.ait.ac.at}"
+echo "[INFO] repository URL: ${NEXUS_URL}"
+
 NEXUS_PASSWORD="${NEXUS_PASSWORD:?new admin password for repository is required}"
 
 USER_NAME="${USER_NAME:?user name is required}"

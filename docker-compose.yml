@@ -73,6 +73,7 @@ services:
       - "/var/run/docker.sock:/var/run/docker.sock"
       - "${AUTH_CONFIG_FULL_PATH}:/auth-config.json"
     environment:
+      - "HOST=${HOSTNAME}"
       - "REGISTRY_AUTH_CONFIG=${AUTH_CONFIG_FULL_PATH}"
     labels:
       - "traefik.enable=true"

@@ -68,7 +68,7 @@ services:
         condition: service_healthy
 
   model-api:
-    image: reformers-energyvalleys/model-api-server
+    image: ghcr.io/reformers-energyvalleys/model-api-server:release
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock"
       - "${AUTH_CONFIG_FULL_PATH}:/auth-config.json"

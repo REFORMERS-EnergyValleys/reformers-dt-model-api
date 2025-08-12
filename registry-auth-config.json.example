@@ -1,8 +1,5 @@
 {
     "auths": {
-        "reformers-dev.ait.ac.at": {
-            "auth": "cmVmb3JtZXJzOjh2VTgyVHJXdU0zbg=="
-        },
         "reformers-dev.ait.ac.at:8082": {
             "auth": "cmVmb3JtZXJzOjh2VTgyVHJXdU0zbg=="
         },

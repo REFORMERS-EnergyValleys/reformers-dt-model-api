@@ -1,14 +1,89 @@
+# This file defines the pipeline’s jobs, stages, and rules for automatically building
+# and deploying the REFORMER Model API and Container Registry with GitLab CI/CD.
+#
+# The following CI/CD variables are expected:
+# - COMPOSE_PROJECT_NAME (optional): project name of deployment
+# - HOSTNAME: host name of the server
+# - KEY_FILE (variable of type File): server private key file
+# - CERT_FILE (variable of type File): server certificate file
+# - REPO_AUTH_CONFIG (variable of type File): repository authorization config file
+# - REGISTRY_AUTH_CONFIG (variable of type File): registry authorization config file
+# - EXTERNAL_REGISTRY_USER: user name for external container registry (for pulling model API server image)
+# - EXTERNAL_REGISTRY_TOKEN: token for external container registry (for pulling model API server image)
+# - REPO_ADMIN_PASSWORD: password for administrator account
+# - USER_NAME: user name for default user account
+# - USER_FIRST_NAME: first name for default user account
+# - USER_LAST_NAME: last name for default user account
+# - USER_EMAIL: e-mail address name for default user account
+# - USER_PASSWORD: password for default user account
+
 stages:
-  - stage
+  - setup
+  - staging
 
 # ============================================================================
-# Define the job templates as referenced by their actual implementation
+# Setup for docker daemon
+# ============================================================================
+docker-setup:
+  stage: setup
+  before_script:
+    # Install requirements
+    - apt-get -y --no-upgrade --no-install-recommends --no-install-suggests install jq bash coreutils
+  script:
+    - |
+      ### Setup for docker daemon
+
+      # Fail early instead of silently continuing with bad data
+      set -euo pipefail
+
+      DOCKER_CONFIG_JSON="/etc/docker/daemon.json"
+      CHANGED_CONFIG=false
+
+      # Ensure config exists and has "insecure-registries" array
+      if [ ! -f "${DOCKER_CONFIG_JSON}" ]; then
+        echo '{"insecure-registries":[]}' > "${DOCKER_CONFIG_JSON}"
+        CHANGED_CONFIG=true
+      elif ! jq -e '."insecure-registries"' "${DOCKER_CONFIG_JSON}" >/dev/null; then
+        jq '. + {"insecure-registries":[]}' "${DOCKER_CONFIG_JSON}" > "${DOCKER_CONFIG_JSON}.tmp" && mv "${DOCKER_CONFIG_JSON}.tmp" "$DOCKER_CONFIG_JSON"
+        CHANGED_CONFIG=true
+      fi
+
+      # Extract registry hosts
+      REGISTRIES=$(jq -r '.auths | keys[]' "${REGISTRY_AUTH_CONFIG}" | sed -E 's|^https?://||')
+
+      # Add missing entries
+      for REGISTRY in ${REGISTRIES}; do
+        if ! jq -e --arg reg "${REGISTRY}" '."insecure-registries" | index($reg)' "${DOCKER_CONFIG_JSON}" >/dev/null; then
+          echo "[INFO] Adding ${REGISTRY} to insecure-registries..."
+          jq --arg reg "${REGISTRY}" '.["insecure-registries"] += [$reg]' "${DOCKER_CONFIG_JSON}" > "${DOCKER_CONFIG_JSON}.tmp" && mv "${DOCKER_CONFIG_JSON}.tmp" "${DOCKER_CONFIG_JSON}"
+          CHANGED_CONFIG=true
+        fi
+      done
+
+      # Restart docker daemon only if changes were made
+      if [ "${CHANGED_CONFIG}" = true ]; then
+        echo "[INFO] Updated insecure registries:"
+        cat "${DOCKER_CONFIG_JSON}"
+        echo "[INFO] Restarting Docker daemon to apply changes..."
+        kill -SIGHUP "$(cat /var/run/docker.pid)" || true
+      else
+        echo "[INFO] No changes to insecure registries. Skipping Docker restart."
+      fi
+
+      # Install registry authentication config file
+      install -m 400 ${REGISTRY_AUTH_CONFIG} /etc/registry-auth-config.json
+  tags:
+    - reformers-dev
+  rules:
+    - when: on_success
+
+# ============================================================================
+# Define job template for deploying the model API & container registry
 # ============================================================================
 .deploy-model-api:
   script:
     - docker info
-    - echo ${REPO_TOKEN} | docker login ghcr.io -u ${REPO_USER} --password-stdin
-    - docker compose pull
+    - docker compose pull --quiet
     - docker compose build --pull
     - docker compose up --force-recreate --always-recreate-deps -d
 
@@ -17,7 +92,16 @@ stages:
 # ============================================================================
 
 deploy-staging:
+  before_script:
+    # Login to ghcr.io
+    - echo ${EXTERNAL_REGISTRY_TOKEN} | docker login ghcr.io -u ${EXTERNAL_REGISTRY_USER} --password-stdin
   extends: .deploy-model-api
-  stage: stage
+  variables:
+    METAGENERATOR_AUTH_CONFIG: /etc/registry-auth-config.json
+  stage: staging
+  needs:
+    - docker-setup
   tags:
     - reformers-dev
+  rules:
+    - when: on_success

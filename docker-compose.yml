@@ -71,10 +71,11 @@ services:
     image: ghcr.io/reformers-energyvalleys/model-api-server:release
     volumes:
       - "/var/run/docker.sock:/var/run/docker.sock"
-      - "${AUTH_CONFIG_FULL_PATH}:/auth-config.json"
+      - "${REPO_AUTH_CONFIG}:/repo-auth-config.json"
+      - "${REGISTRY_AUTH_CONFIG}:/registry-auth-config.json"
     environment:
       - "HOST=${HOSTNAME}"
-      - "REGISTRY_AUTH_CONFIG=${AUTH_CONFIG_FULL_PATH}"
+      - "METAGENERATOR_AUTH_CONFIG=${METAGENERATOR_AUTH_CONFIG}"
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.model-api.rule=Host(`${HOSTNAME}`) && PathPrefix(`/api`)"

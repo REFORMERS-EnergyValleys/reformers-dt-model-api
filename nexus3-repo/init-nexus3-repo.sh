@@ -138,7 +138,7 @@ HTTP_RESPONSE=$( \
     "storage": {
       "blobStoreName": "default",
       "strictContentTypeValidation": true,
-      "writePolicy": "allow_once"
+      "writePolicy": "ALLOW"
     },
     "docker": {
       "v1Enabled": true,
@@ -172,7 +172,7 @@ HTTP_RESPONSE=$( \
     "storage": {
       "blobStoreName": "default",
       "strictContentTypeValidation": true,
-      "writePolicy": "allow_once"
+      "writePolicy": "ALLOW"
     },
     "docker": {
       "v1Enabled": true,

@@ -35,7 +35,7 @@ services:
       # - "traefik.http.services.service-repo-model-artifacts.loadbalancer.server.port=8084"
       # - "traefik.http.routers.repo-model-artifacts.entrypoints=web-repo-model-artifacts"
       # - "traefik.http.routers.repo-model-artifacts.tls=true"
-    restart: on-failure
+    restart: always
     healthcheck:
       test: [
         "CMD", "curl", "--fail", "--silent", "http://localhost:8081/service/rest/v1/status/writable"
@@ -83,7 +83,7 @@ services:
       - "traefik.http.routers.model-api.tls=true"
       - "traefik.http.routers.model-api.service=service-model-api"
       - "traefik.http.services.service-model-api.loadbalancer.server.port=80"
-    restart: on-failure
+    restart: always
     depends_on:
       setup-repository:
         condition: service_completed_successfully
@@ -102,7 +102,7 @@ services:
       - ${KEY_FILE}:/etc/certs/server.key
       - ${CERT_FILE}:/etc/certs/server.crt
       - /var/run/docker.sock:/var/run/docker.sock
-    restart: on-failure
+    restart: always
 
 volumes:
   nexus_repo_data:

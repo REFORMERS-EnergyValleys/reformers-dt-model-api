@@ -36,6 +36,8 @@ services:
       # - "traefik.http.routers.repo-model-artifacts.entrypoints=web-repo-model-artifacts"
       # - "traefik.http.routers.repo-model-artifacts.tls=true"
     restart: always
+    depends_on:
+      - reverse-proxy
     healthcheck:
       test: [
         "CMD", "curl", "--fail", "--silent", "http://localhost:8081/service/rest/v1/status/writable"
@@ -76,6 +78,7 @@ services:
     environment:
       - "HOST=${HOSTNAME}"
       - "METAGENERATOR_AUTH_CONFIG=${METAGENERATOR_AUTH_CONFIG}"
+      - "REMOVE_CONTAINERS=${REMOVE_CONTAINERS:-True}"
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.model-api.rule=Host(`${HOSTNAME}`) && PathPrefix(`/api`)"

@@ -59,6 +59,8 @@ services:
       - USER_FIRST_NAME=${USER_FIRST_NAME}
       - USER_LAST_NAME=${USER_LAST_NAME}
       - USER_EMAIL=${USER_EMAIL}
+    labels:
+      - "traefik.enable=false"
     deploy:
       restart_policy:
         condition: on-failure

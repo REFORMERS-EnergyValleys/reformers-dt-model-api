@@ -62,6 +62,7 @@ The Model API enables users / services to retrieve information about available m
    + `REPO_AUTH_CONFIG`: path to authentication config file for accessing the repository
    + `REGISTRY_AUTH_CONFIG`: path to authentication config file for accessing the container registries
    + `METAGENERATOR_AUTH_CONFIG`: path to authentication config file for accessing the container registries passed as input to metagenerators
+
    For testing, you can use file [`.env.example`](./.env.example).
 6. Start the service:
    ``` bash
@@ -77,7 +78,7 @@ This will cause browsers and other software to complain about security risks.
 ### Automated deployment
 
 The deployment can be automated with the help of [CI/CD](https://en.wikipedia.org/wiki/CI/CD) workflows.
-File [.gitlab-ci.yaml](./.gitlab-ci.yaml) gives an example for the configuration of a [GitLab CI/CD pipeline](https://docs.gitlab.com/ci/).
+File [.gitlab-ci.yml](./.gitlab-ci.yml) gives an example for the configuration of a [GitLab CI/CD pipeline](https://docs.gitlab.com/ci/).
 
 ## Usage
 

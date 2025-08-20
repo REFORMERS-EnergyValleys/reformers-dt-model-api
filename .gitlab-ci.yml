@@ -22,16 +22,17 @@ stages:
   - staging
 
 # ============================================================================
-# Setup for docker daemon
+# Setup for docker daemon: declare insecure registries (only needed when using
+# self-signed cerificates)
 # ============================================================================
-docker-setup:
+docker-setup-insecure-registries:
   stage: setup
   before_script:
     # Install requirements
     - apt-get -y --no-upgrade --no-install-recommends --no-install-suggests install jq bash coreutils
   script:
     - |
-      ### Setup for docker daemon
+      ### Setup for docker daemon: declare insecure registries
 
       # Fail early instead of silently continuing with bad data
       set -euo pipefail
@@ -69,9 +70,21 @@ docker-setup:
       else
         echo "[INFO] No changes to insecure registries. Skipping Docker restart."
       fi
+  tags:
+    - reformers-dev
+  rules:
+    - when: on_success
 
-      # Install registry authentication config file
-      install -m 400 ${REGISTRY_AUTH_CONFIG} /etc/registry-auth-config.json
+# ============================================================================
+# Setup for docker daemon: install registry authentication config file
+# ============================================================================
+docker-install-registry-auth:
+  stage: setup
+  before_script:
+    # Install requirements
+    - apt-get -y --no-upgrade --no-install-recommends --no-install-suggests install jq bash coreutils
+  script:
+    - install -m 400 ${REGISTRY_AUTH_CONFIG} /etc/registry-auth-config.json
   tags:
     - reformers-dev
   rules:

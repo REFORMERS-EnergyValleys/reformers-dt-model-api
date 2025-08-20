@@ -112,8 +112,8 @@ deploy-staging:
   variables:
     METAGENERATOR_AUTH_CONFIG: /etc/registry-auth-config.json
   stage: staging
-  needs:
-    - docker-setup
+  dependencies:
+    - docker-install-registry-auth
   tags:
     - reformers-dev
   rules:

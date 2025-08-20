@@ -1,6 +1,6 @@
 # REFORMERS Digital Twin Model API & Container Registry
 
-This repository provides the configuration for deploying the **Model API** & **Container Regsitry** for the [REFORMERS] Digital Twin.
+This repository provides the configuration for deploying the **Model API** & **Container Registry** for the [REFORMERS] Digital Twin.
 The Container Registry stores container images of model generators and models.
 The Model API enables users / services to retrieve information about available model generators and models and helps automating associated workflows.
 
